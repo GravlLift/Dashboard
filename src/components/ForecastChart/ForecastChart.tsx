@@ -287,9 +287,24 @@ const ForecastChart: FC<ForecastChartProps> = (props) => {
               const dateTemps = temperature.filter(
                 (t) => +t.x.startOf('day') === +d
               );
-              dayIcon = dateTemps.find((t) => t.x.hour === 13)?.icon;
               hiTemp = Math.max(...dateTemps.map((t) => t.y));
               lowTemp = Math.min(...dateTemps.map((t) => t.y));
+
+              const dayIndicativeTemp = dateTemps.find((t) => t.x.hour === 13);
+              if (dayIndicativeTemp) {
+                dayIcon = dayIndicativeTemp.icon;
+              } else {
+                const indicativeTempsBefore13 = dateTemps.filter(
+                  (t) => t.x.hour < 13
+                );
+                if (indicativeTempsBefore13.length > 0) {
+                  dayIcon =
+                    indicativeTempsBefore13[indicativeTempsBefore13.length - 1]
+                      .icon;
+                } else {
+                  dayIcon = dateTemps[0]?.icon;
+                }
+              }
             }
             return (
               <Tab key={d.toMillis()}>
