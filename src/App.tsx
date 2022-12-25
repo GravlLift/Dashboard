@@ -22,7 +22,7 @@ function App() {
   const forecasts = useForecasts();
   return (
     <ChakraProvider>
-      <Card p={4} m={2} height="100%">
+      <Card p={4} m={2} minHeight={450}>
         {forecasts.hourly.length && forecasts.current ? (
           <>
             <CurrentConditions current={forecasts.current}></CurrentConditions>

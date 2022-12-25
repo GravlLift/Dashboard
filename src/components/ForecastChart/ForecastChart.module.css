@@ -1,5 +1,6 @@
 .ForecastChart {
-    color: #666
+    color: #666;
+    height: 100%;
 }
 
 .scrollable {
@@ -11,5 +12,5 @@
 
 .scrollable > div {
     width: 475%;
-    height: 200px;
+    min-height: 200px;
 }

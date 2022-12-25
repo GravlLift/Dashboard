@@ -3,7 +3,6 @@ import {
   Box,
   Center,
   Flex,
-  Spinner,
   Tab,
   TabList,
   TabPanel,
@@ -54,7 +53,6 @@ const baseOptions: ChartOptions<'bar' | 'line'> = {
   plugins: {
     legend: { display: false },
     datalabels: {
-      anchor: 'end',
       align: 'end',
       offset: 2,
     },
@@ -158,170 +156,159 @@ const ForecastChart: FC<ForecastChartProps> = (props) => {
 
   return (
     <Box className={styles.ForecastChart}>
-      {props.hourlyForecasts.length > 0 ? (
-        <>
-          <Tabs>
-            <TabList>
-              <Tab>Temperature</Tab>
-              <Tab>Precipitation</Tab>
-              <Tab>Wind</Tab>
-            </TabList>
-            <TabPanels
-              ref={scrollableRef}
-              className={styles.scrollable}
-              onScroll={(e) =>
-                scrollSubject$.next(
-                  e.currentTarget?.scrollLeft / e.currentTarget?.scrollWidth
-                )
-              }
-            >
-              <TabPanel>
-                <Line
-                  plugins={[ChartDataLabels]}
-                  options={{
-                    ...baseOptions,
-                    plugins: {
-                      ...baseOptions.plugins,
-                      datalabels: {
-                        ...baseOptions.plugins?.datalabels,
-                        formatter: (value: { y: number }) => {
-                          return (+value.y).toFixed(0);
-                        },
-                      },
+      <Tabs>
+        <TabList>
+          <Tab>Temperature</Tab>
+          <Tab>Precipitation</Tab>
+          <Tab>Wind</Tab>
+        </TabList>
+        <TabPanels
+          ref={scrollableRef}
+          className={styles.scrollable}
+          onScroll={(e) =>
+            scrollSubject$.next(
+              e.currentTarget?.scrollLeft / e.currentTarget?.scrollWidth
+            )
+          }
+        >
+          <TabPanel>
+            <Line
+              plugins={[ChartDataLabels]}
+              options={{
+                ...baseOptions,
+                plugins: {
+                  ...baseOptions.plugins,
+                  datalabels: {
+                    ...baseOptions.plugins?.datalabels,
+                    formatter: (value: { y: number }) => {
+                      return (+value.y).toFixed(0);
                     },
-                  }}
-                  data={{
-                    datasets: [
-                      {
-                        backgroundColor: 'rgba(255, 204, 0, 0.2)',
-                        borderColor: '#fc0',
-                        fill: true,
-                        pointRadius: 0,
-                        data: temperature,
-                        tension: 0.5,
-                      },
-                      {
-                        borderColor: '#fc0',
-                        borderDash: [5, 5],
-                        pointRadius: 0,
-                        data: feelsLike,
-                        tension: 0.5,
-                        animation: false,
-                      },
-                    ],
-                  }}
-                ></Line>
-              </TabPanel>
-              <TabPanel>
-                <Bar
-                  plugins={[ChartDataLabels]}
-                  options={{
-                    ...baseOptions,
-                    plugins: {
-                      ...baseOptions.plugins,
-                      datalabels: {
-                        ...baseOptions.plugins?.datalabels,
-                        formatter: (value: { y: number }) =>
-                          (+value.y).toFixed(1),
-                      },
+                  },
+                },
+              }}
+              data={{
+                datasets: [
+                  {
+                    backgroundColor: 'rgba(255, 204, 0, 0.2)',
+                    borderColor: '#fc0',
+                    fill: true,
+                    pointRadius: 0,
+                    data: temperature,
+                    tension: 0.5,
+                  },
+                  {
+                    borderColor: '#fc0',
+                    borderDash: [5, 5],
+                    pointRadius: 0,
+                    data: feelsLike,
+                    tension: 0.5,
+                    animation: false,
+                  },
+                ],
+              }}
+            ></Line>
+          </TabPanel>
+          <TabPanel>
+            <Bar
+              plugins={[ChartDataLabels]}
+              options={{
+                ...baseOptions,
+                plugins: {
+                  ...baseOptions.plugins,
+                  datalabels: {
+                    ...baseOptions.plugins?.datalabels,
+                    formatter: (value: { y: number }) => (+value.y).toFixed(1),
+                  },
+                },
+              }}
+              data={{
+                datasets: [
+                  {
+                    data: precipitation,
+                    backgroundColor: 'rgba(0, 0, 255, 0.2)',
+                    borderColor: '#00f',
+                    borderWidth: {
+                      top: 1,
                     },
-                  }}
-                  data={{
-                    datasets: [
-                      {
-                        data: precipitation,
-                        backgroundColor: 'rgba(0, 0, 255, 0.2)',
-                        borderColor: '#00f',
-                        borderWidth: {
-                          top: 1,
-                        },
-                        barPercentage: 1,
-                        categoryPercentage: 1,
-                      },
-                    ],
-                  }}
-                ></Bar>
-              </TabPanel>
-              <TabPanel>
-                <Flex height={'100%'}>
-                  {winds.map((w) => (
-                    <Flex
-                      height={'100%'}
-                      key={w.x.toMillis()}
-                      flexGrow={1}
-                      direction={'column'}
-                    >
-                      <Center fontSize={'xs'}>{Math.round(w.speed)} mph</Center>
-                      <Center flexGrow={1}>
-                        <ArrowUpIcon
-                          boxSize={w.speed / 5 + 0.5 + 'em'}
-                          style={{ transform: 'rotate(' + w.deg + 'deg)' }}
-                        />
-                      </Center>
-                      <Center fontSize={'xs'}>{w.x.toFormat('h a')}</Center>
-                    </Flex>
-                  ))}
+                    barPercentage: 1,
+                    categoryPercentage: 1,
+                  },
+                ],
+              }}
+            ></Bar>
+          </TabPanel>
+          <TabPanel>
+            <Flex height={'100%'}>
+              {winds.map((w) => (
+                <Flex
+                  height={'100%'}
+                  key={w.x.toMillis()}
+                  flexGrow={1}
+                  direction={'column'}
+                >
+                  <Center fontSize={'xs'}>{Math.round(w.speed)} mph</Center>
+                  <Center flexGrow={1}>
+                    <ArrowUpIcon
+                      boxSize={w.speed / 5 + 0.5 + 'em'}
+                      style={{ transform: 'rotate(' + w.deg + 'deg)' }}
+                    />
+                  </Center>
+                  <Center fontSize={'xs'}>{w.x.toFormat('h a')}</Center>
                 </Flex>
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
-          <Tabs
-            isFitted
-            variant={'soft-rounded'}
-            index={dateFirstOccurrences.findIndex(
-              (d) => selectedDate !== undefined && +d[0] === +selectedDate
-            )}
-            onChange={(index) => {
-              const dataPointToScrollTo = dateFirstOccurrences[index][1];
-              const percentScroll = dataPointToScrollTo / temperature.length;
+              ))}
+            </Flex>
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
+      <Tabs
+        isFitted
+        variant={'soft-rounded'}
+        index={dateFirstOccurrences.findIndex(
+          (d) => selectedDate !== undefined && +d[0] === +selectedDate
+        )}
+        onChange={(index) => {
+          const dataPointToScrollTo = dateFirstOccurrences[index][1];
+          const percentScroll = dataPointToScrollTo / temperature.length;
 
-              scrollableRef.current?.scrollTo({
-                left: percentScroll * scrollableRef.current?.scrollWidth,
-                behavior: 'smooth',
-              });
-            }}
-          >
-            <TabList>
-              {dateFirstOccurrences.map(([d]) => {
-                let hiTemp: number,
-                  lowTemp: number,
-                  dayIcon: string | undefined;
-                if (+currentDate.startOf('day') === +d) {
-                  dayIcon = props.current.weather[0].icon;
-                  hiTemp = kelvinToFahrenheit(props.current.main.temp_max);
-                  lowTemp = kelvinToFahrenheit(props.current.main.temp_min);
-                } else {
-                  const dateTemps = temperature.filter(
-                    (t) => +t.x.startOf('day') === +d
-                  );
-                  dayIcon = dateTemps.find((t) => t.x.hour === 13)?.icon;
-                  hiTemp = Math.max(...dateTemps.map((t) => t.y));
-                  lowTemp = Math.min(...dateTemps.map((t) => t.y));
-                }
-                return (
-                  <Tab key={d.toMillis()}>
-                    <Flex direction={'column'}>
-                      <Center>{d.toFormat('EEE')}</Center>
-                      <Center>
-                        <Image
-                          src={`https://openweathermap.org/img/wn/${dayIcon}.png`}
-                        />
-                      </Center>
-                      <Center>
-                        {Math.round(lowTemp)} / {Math.round(hiTemp)}
-                      </Center>
-                    </Flex>
-                  </Tab>
-                );
-              })}
-            </TabList>
-          </Tabs>
-        </>
-      ) : (
-        <Center minHeight={200}>
-          <Spinner />
-        </Center>
-      )}
+          scrollableRef.current?.scrollTo({
+            left: percentScroll * scrollableRef.current?.scrollWidth,
+            behavior: 'smooth',
+          });
+        }}
+      >
+        <TabList>
+          {dateFirstOccurrences.map(([d]) => {
+            let hiTemp: number, lowTemp: number, dayIcon: string | undefined;
+            if (+currentDate.startOf('day') === +d) {
+              dayIcon = props.current.weather[0].icon;
+              hiTemp = kelvinToFahrenheit(props.current.main.temp_max);
+              lowTemp = kelvinToFahrenheit(props.current.main.temp_min);
+            } else {
+              const dateTemps = temperature.filter(
+                (t) => +t.x.startOf('day') === +d
+              );
+              dayIcon = dateTemps.find((t) => t.x.hour === 13)?.icon;
+              hiTemp = Math.max(...dateTemps.map((t) => t.y));
+              lowTemp = Math.min(...dateTemps.map((t) => t.y));
+            }
+            return (
+              <Tab key={d.toMillis()}>
+                <Flex direction={'column'}>
+                  <Center>{d.toFormat('EEE')}</Center>
+                  <Center>
+                    <Image
+                      src={`https://openweathermap.org/img/wn/${dayIcon}.png`}
+                    />
+                  </Center>
+                  <Center>
+                    {Math.round(lowTemp)} / {Math.round(hiTemp)}
+                  </Center>
+                </Flex>
+              </Tab>
+            );
+          })}
+        </TabList>
+      </Tabs>
     </Box>
   );
 };
