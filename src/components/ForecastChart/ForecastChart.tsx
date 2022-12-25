@@ -241,7 +241,7 @@ const ForecastChart: FC<ForecastChartProps> = (props) => {
             <Flex height={'100%'}>
               {winds.map((w) => (
                 <Flex
-                  height={'100%'}
+                  minHeight={200}
                   key={w.x.toMillis()}
                   flexGrow={1}
                   direction={'column'}
