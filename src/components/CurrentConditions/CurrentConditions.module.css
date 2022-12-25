@@ -1,0 +1,8 @@
+.CurrentConditions > * {
+    padding: 25px 4px;
+    height: 100px;
+}
+
+.CurrentConditions * {
+    line-height: 1;
+}

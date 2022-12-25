@@ -1,25 +1,43 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { Card, Center, ChakraProvider, Spinner } from '@chakra-ui/react';
+import { bind } from '@react-rxjs/core';
+import '@tremor/react/dist/esm/tremor.css';
+import { combineLatest, map, switchMap, timer } from 'rxjs';
+import CurrentConditions from './components/CurrentConditions/CurrentConditions';
+import ForecastChart from './components/ForecastChart/ForecastChart';
+import { CurrentConditionsResponse, OpenWeather } from './open-weather';
+const [useForecasts] = bind(
+  timer(0, 5 * 60 * 1000).pipe(
+    switchMap(() =>
+      combineLatest([OpenWeather.forecast(), OpenWeather.currentConditions()])
+    ),
+    map(([hourly, current]) => ({
+      hourly: hourly.list,
+      current: current as CurrentConditionsResponse | null,
+    }))
+  ),
+  { hourly: [], current: null }
+);
 
 function App() {
+  const forecasts = useForecasts();
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ChakraProvider>
+      <Card p={4} m={2} height="100%">
+        {forecasts.hourly.length && forecasts.current ? (
+          <>
+            <CurrentConditions current={forecasts.current}></CurrentConditions>
+            <ForecastChart
+              hourlyForecasts={forecasts.hourly}
+              current={forecasts.current}
+            />
+          </>
+        ) : (
+          <Center>
+            <Spinner />
+          </Center>
+        )}
+      </Card>
+    </ChakraProvider>
   );
 }
 

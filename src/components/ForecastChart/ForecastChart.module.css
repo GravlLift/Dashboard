@@ -1,0 +1,15 @@
+.ForecastChart {
+    color: #666
+}
+
+.scrollable {
+    overflow-x: auto;
+}
+.scrollable::-webkit-scrollbar {
+    display: none;
+}
+
+.scrollable > div {
+    width: 475%;
+    height: 200px;
+}
