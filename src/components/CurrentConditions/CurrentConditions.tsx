@@ -2,7 +2,7 @@ import { Box, Center, Flex, Image, Spacer } from '@chakra-ui/react';
 import { DateTime } from 'luxon';
 import { FC } from 'react';
 import { kelvinToFahrenheit } from '../../conversions';
-import { CurrentConditionsResponse } from '../../open-weather';
+import { CurrentConditionsResponse } from '../../data/open-weather';
 import styles from './CurrentConditions.module.css';
 
 interface CurrentConditionsProps {

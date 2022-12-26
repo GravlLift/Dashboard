@@ -3,10 +3,10 @@ import {
   Box,
   Center,
   Flex,
+  Image,
   Tab,
   TabList,
   TabPanel,
-  Image,
   TabPanels,
   Tabs,
 } from '@chakra-ui/react';
@@ -28,8 +28,8 @@ import React, { FC } from 'react';
 import { Bar, Line } from 'react-chartjs-2';
 import { debounceTime, Subject } from 'rxjs';
 import { kelvinToFahrenheit } from '../../conversions';
-import { CurrentConditionsResponse } from '../../open-weather';
-import { HourlyForecast } from '../../open-weather/models/forecast/hourly';
+import { CurrentConditionsResponse } from '../../data/open-weather';
+import { HourlyForecast } from '../../data/open-weather/models/forecast/hourly';
 import styles from './ForecastChart.module.css';
 
 Chart.register(
@@ -156,7 +156,12 @@ const ForecastChart: FC<ForecastChartProps> = (props) => {
 
   return (
     <Box className={styles.ForecastChart}>
-      <Tabs>
+      <Tabs
+        display={'flex'}
+        flexDir={'column'}
+        flexGrow={1}
+        maxH={'calc(100% - 114px)'}
+      >
         <TabList>
           <Tab>Temperature</Tab>
           <Tab>Precipitation</Tab>
@@ -170,8 +175,9 @@ const ForecastChart: FC<ForecastChartProps> = (props) => {
               e.currentTarget?.scrollLeft / e.currentTarget?.scrollWidth
             )
           }
+          flexGrow={1}
         >
-          <TabPanel>
+          <TabPanel className={styles.graphPanel}>
             <Line
               plugins={[ChartDataLabels]}
               options={{
@@ -194,6 +200,7 @@ const ForecastChart: FC<ForecastChartProps> = (props) => {
                     fill: true,
                     pointRadius: 0,
                     data: temperature,
+                    animation: false,
                     tension: 0.5,
                   },
                   {
@@ -208,7 +215,7 @@ const ForecastChart: FC<ForecastChartProps> = (props) => {
               }}
             ></Line>
           </TabPanel>
-          <TabPanel>
+          <TabPanel className={styles.graphPanel}>
             <Bar
               plugins={[ChartDataLabels]}
               options={{
@@ -232,24 +239,20 @@ const ForecastChart: FC<ForecastChartProps> = (props) => {
                     },
                     barPercentage: 1,
                     categoryPercentage: 1,
+                    animation: false,
                   },
                 ],
               }}
             ></Bar>
           </TabPanel>
-          <TabPanel>
+          <TabPanel className={styles.graphPanel}>
             <Flex height={'100%'}>
               {winds.map((w) => (
-                <Flex
-                  minHeight={200}
-                  key={w.x.toMillis()}
-                  flexGrow={1}
-                  direction={'column'}
-                >
+                <Flex key={w.x.toMillis()} className={styles.windIcon}>
                   <Center fontSize={'xs'}>{Math.round(w.speed)} mph</Center>
-                  <Center flexGrow={1}>
+                  <Center minHeight={200}>
                     <ArrowUpIcon
-                      boxSize={w.speed / 5 + 0.5 + 'em'}
+                      boxSize={2 * (w.speed / 5 + 0.5) + 'em'}
                       style={{ transform: 'rotate(' + w.deg + 'deg)' }}
                     />
                   </Center>

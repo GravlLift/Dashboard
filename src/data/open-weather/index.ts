@@ -1,6 +1,6 @@
 import { map, Observable, switchMap } from 'rxjs';
 import { ajax } from 'rxjs/ajax';
-import type { CurrentConditionsResponse, HourlyResponse } from './models/index';
+import type { CurrentConditionsResponse, HourlyResponse } from './models';
 export * from './models/index.d';
 
 const location$ = new Observable<{ lat: number; lon: number }>((observer) =>
