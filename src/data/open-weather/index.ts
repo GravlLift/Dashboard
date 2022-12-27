@@ -1,38 +1,30 @@
-import { map, Observable, switchMap } from 'rxjs';
-import { ajax } from 'rxjs/ajax';
 import type { CurrentConditionsResponse, HourlyResponse } from './models';
 export * from './models/index.d';
 
-const location$ = new Observable<{ lat: number; lon: number }>((observer) =>
-  window.navigator.geolocation.getCurrentPosition((pos) => {
-    observer.next({
-      lat: pos.coords.latitude,
-      lon: pos.coords.longitude,
-    });
-    observer.complete();
-  })
-);
-
 export module OpenWeather {
-  const baseCall = <TResponse>(route: string) =>
-    location$.pipe(
-      switchMap(({ lat, lon }) =>
-        ajax<TResponse>({
-          url: 'https://api.openweathermap.org/data/2.5/' + route,
-          queryParams: {
-            appid: process.env.REACT_APP_OPEN_WEATHER_API_KEY as string,
-            lat,
-            lon,
-          },
-          withCredentials: false,
-          crossDomain: true,
-        }).pipe(map((ajaxResponse) => ajaxResponse.response))
-      )
+  async function baseCall<TResponse>(
+    route: string,
+    lat: number | string,
+    lon: number | string
+  ) {
+    const searchParams = new URLSearchParams({
+      appid: process.env.OPEN_WEATHER_API_KEY as string,
+      lat: lat.toString(),
+      lon: lon.toString(),
+    });
+    const res = await fetch(
+      `https://api.openweathermap.org/data/2.5/${route}?${searchParams}`
     );
+    return (await res.json()) as TResponse;
+  }
 
-  export const currentConditions = (): Observable<CurrentConditionsResponse> =>
-    baseCall('weather');
+  export const currentConditions = (
+    lat: number | string,
+    lon: number | string
+  ): Promise<CurrentConditionsResponse> => baseCall('weather', lat, lon);
 
-  export const forecast = (): Observable<HourlyResponse> =>
-    baseCall('forecast');
+  export const forecast = (
+    lat: number | string,
+    lon: number | string
+  ): Promise<HourlyResponse> => baseCall('forecast', lat, lon);
 }
