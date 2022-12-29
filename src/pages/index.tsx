@@ -10,34 +10,58 @@ import {
   TabPanels,
   Tabs,
 } from '@chakra-ui/react';
-import useSWR from 'swr';
+import { useEffect, useState } from 'react';
+import { catchError, EMPTY, of, Subscription } from 'rxjs';
+import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import CurrentConditions from '../components/CurrentConditions/CurrentConditions';
 import ForecastChart from '../components/ForecastChart/ForecastChart';
-import { CurrentConditionsResponse } from '../data/open-weather';
-import type { HourlyForecast } from '../data/open-weather/models/forecast/hourly';
+import type {
+  CurrentConditionsResponse,
+  HourlyForecast,
+} from '../data/open-weather';
 import styles from './index.module.css';
 
-const fetcher = async (...args: Parameters<typeof fetch>) => {
-  const { lat, lon } = await new Promise<{ lat: number; lon: number }>(
-    (resolve) =>
-      window.navigator.geolocation.getCurrentPosition((pos) => {
-        resolve({
-          lat: pos.coords.latitude,
-          lon: pos.coords.longitude,
-        });
-      })
-  );
-  args[0] += `?lat=${lat}&lon=${lon}`;
-  return await fetch(...args).then(
-    (res) =>
-      res.json() as Promise<{
-        hourly: HourlyForecast[];
-        current: CurrentConditionsResponse;
-      }>
-  );
-};
 function App() {
-  const { data: forecasts } = useSWR(`/api`, fetcher);
+  const [forecasts, setForecasts] = useState({
+    hourly: [] as HourlyForecast[],
+    current: null as CurrentConditionsResponse | null,
+  });
+  useEffect(() => {
+    let ws: WebSocketSubject<any>;
+    let subscription: Subscription;
+
+    function startWebSocket() {
+      ws = webSocket({
+        url: 'ws://localhost:3000',
+      });
+
+      subscription = ws
+        .pipe(
+          catchError(() => {
+            startWebSocket();
+            return EMPTY;
+          })
+        )
+        .subscribe((msg) => {
+          setForecasts(
+            msg as {
+              hourly: HourlyForecast[];
+              current: CurrentConditionsResponse;
+            }
+          );
+        });
+
+      window.navigator.geolocation.getCurrentPosition((position) => {
+        ws.next({
+          lat: position.coords.latitude,
+          lon: position.coords.longitude,
+        });
+      });
+    }
+
+    startWebSocket();
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <div style={{ height: '100vh' }}>
