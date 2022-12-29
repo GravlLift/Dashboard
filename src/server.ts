@@ -1,9 +1,12 @@
 import { createServer } from 'http';
-import WebSocket from 'ws';
-import { parse } from 'url';
 import next from 'next';
-import { data$ } from './data';
-import { Subscription } from 'rxjs';
+import { from, SubscriptionLike, switchMap, timer } from 'rxjs';
+import { combineLatest } from 'rxjs/internal/observable/combineLatest';
+import { parse } from 'url';
+import WebSocket from 'ws';
+import { Data } from './data';
+import { getActivities } from './data/garmin-connect';
+import { currentConditions$, forecast$ } from './data/open-weather';
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
@@ -18,16 +21,55 @@ app.prepare().then(() => {
   const wss = new WebSocket.Server({ noServer: true });
 
   wss.on('connection', (ws) => {
-    let subscription: Subscription;
     websockets.push(ws);
+
+    const subscriptions: SubscriptionLike[] = [];
+    const timer$ = timer(0, 1000 * 60 * 15);
+
+    // Datat that requires no user input can be sent immediately
+    subscriptions.push(
+      timer$
+        .pipe(switchMap(() => from(getActivities())))
+        .subscribe((activities) => {
+          ws.send(JSON.stringify({ garmin: { activities } } as Data));
+        })
+    );
+
+    // Data that requires user input will wait for the appropriate message
     ws.on('message', (message) => {
-      const { lat, lon } = JSON.parse(message.toString());
-      subscription = data$(lat, lon).subscribe((data: any) => {
-        ws.send(JSON.stringify(data));
-      });
+      try {
+        const messageObj = JSON.parse(message.toString());
+
+        if ('lat' in messageObj && 'lon' in messageObj) {
+          subscriptions.push(
+            timer$
+              .pipe(
+                switchMap(() =>
+                  combineLatest([
+                    currentConditions$(messageObj.lat, messageObj.lon),
+                    forecast$(messageObj.lat, messageObj.lon),
+                  ])
+                )
+              )
+              .subscribe((data) => {
+                ws.send(
+                  JSON.stringify({
+                    weather: {
+                      current: data[0],
+                      hourly: data[1].list,
+                    },
+                  } as Data)
+                );
+              })
+          );
+        }
+      } catch (e) {
+        console.log('Received non-JSON message');
+      }
     });
+
     ws.onclose = () => {
-      subscription?.unsubscribe();
+      subscriptions.forEach((s) => s.unsubscribe());
       websockets.splice(websockets.indexOf(ws), 1);
     };
   });

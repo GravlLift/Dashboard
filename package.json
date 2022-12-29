@@ -35,9 +35,9 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "dev": "ts-node-esm --experimental-specifier-resolution=node src/server.ts",
+    "dev": "nodemon --exec \"ts-node-esm --experimental-specifier-resolution=node src/server.ts\" --ext ts,mts --delay 0.25",
     "build": "next build",
-    "start": "NODE_ENV=production ts-node src/server.mts",
+    "start": "ts-node-esm --experimental-specifier-resolution=node src/server.ts",
     "lint": "next lint"
   },
   "eslintConfig": {
@@ -60,6 +60,7 @@
   },
   "devDependencies": {
     "@types/luxon": "^3.1.0",
+    "nodemon": "^2.0.20",
     "ts-node": "^10.9.1"
   }
 }

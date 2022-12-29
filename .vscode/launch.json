@@ -24,7 +24,7 @@
       "request": "launch",
       "command": "npm run dev",
       "serverReadyAction": {
-        "pattern": "Ready on (https?://.+)",
+        "pattern": "Ready on (https?://.+) and",
         "uriFormat": "%s",
         "action": "debugWithChrome"
       }

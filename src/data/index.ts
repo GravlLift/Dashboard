@@ -1,15 +1,15 @@
-import { combineLatest, map, shareReplay } from 'rxjs';
-import { OpenWeather } from './open-weather';
+import { getActivities } from './garmin-connect';
+import type {
+  CurrentConditionsResponse,
+  HourlyResponse,
+} from './open-weather/models';
 
-export function data$(lat: number, lon: number) {
-  return combineLatest([
-    OpenWeather.currentConditions(lat, lon),
-    OpenWeather.forecast(lat, lon),
-  ]).pipe(
-    map(([current, hourly]) => ({
-      current,
-      hourly: hourly.list,
-    })),
-    shareReplay(1)
-  );
+export interface Data {
+  weather: {
+    current: CurrentConditionsResponse;
+    hourly: HourlyResponse['list'];
+  };
+  garmin: {
+    activities: Awaited<ReturnType<typeof getActivities>>;
+  };
 }
