@@ -12,4 +12,5 @@ export interface Data {
   garmin: {
     activities: Awaited<ReturnType<typeof getActivities>>;
   };
+  house: { zestimateHistory: { x: number; y: number }[] };
 }

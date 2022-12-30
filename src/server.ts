@@ -7,6 +7,7 @@ import WebSocket from 'ws';
 import { Data } from './data';
 import { getActivities } from './data/garmin-connect';
 import { currentConditions$, forecast$ } from './data/open-weather';
+import { get18MapleAveZestimateHistory } from './data/zillow';
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
@@ -32,6 +33,11 @@ app.prepare().then(() => {
         .pipe(switchMap(() => from(getActivities())))
         .subscribe((activities) => {
           ws.send(JSON.stringify({ garmin: { activities } } as Data));
+        }),
+      timer$
+        .pipe(switchMap(() => from(get18MapleAveZestimateHistory())))
+        .subscribe((zestimateHistory) => {
+          ws.send(JSON.stringify({ house: { zestimateHistory } } as Data));
         })
     );
 

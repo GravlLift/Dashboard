@@ -173,7 +173,7 @@ const Running: FC<RunningProps> = ({ activities }) => {
             suggestedMin: rangeStart.toMillis(),
             max: now.toMillis(),
             grid: { display: false },
-            type: 'timeseries',
+            type: 'time',
             ticks: {
               autoSkip: false,
               stepSize: 3,
