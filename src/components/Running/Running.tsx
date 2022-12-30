@@ -1,12 +1,10 @@
 import {
   Box,
   Center,
+  CircularProgress,
+  CircularProgressLabel,
   Flex,
   SimpleGrid,
-  Stat,
-  StatGroup,
-  StatLabel,
-  StatNumber,
   Tab,
   TabList,
   Tabs,
@@ -14,8 +12,8 @@ import {
 import {
   BarElement,
   Chart,
+  ChartOptions,
   TimeSeriesScale,
-  TimeUnit,
   Tooltip,
 } from 'chart.js';
 import { DateTime, Duration } from 'luxon';
@@ -37,11 +35,11 @@ const dateConfig = {
     minus: { days: 7 },
   },
   fourWeeks: {
-    unit: 'week' as const,
+    unit: 'day' as const,
     minus: { weeks: 4 },
   },
   sixMonths: {
-    unit: 'month' as const,
+    unit: 'week' as const,
     minus: { months: 6 },
   },
   oneYear: {
@@ -54,7 +52,7 @@ Chart.register(BarElement, TimeSeriesScale, Tooltip);
 
 const Running: FC<RunningProps> = ({ activities }) => {
   const [dateRange, setDateRange] =
-    React.useState<keyof typeof dateConfig>('sevenDays');
+    React.useState<keyof typeof dateConfig>('fourWeeks');
 
   const now = React.useMemo(
     () => DateTime.local().endOf(dateConfig[dateRange].unit),
@@ -128,14 +126,72 @@ const Running: FC<RunningProps> = ({ activities }) => {
     return {
       distanceData,
       paceData,
-      averageDistance: totalDistance / allBuckets.size,
+      averageDistance:
+        totalDistance /
+        now
+          .diff(rangeStart, dateConfig[dateRange].unit)
+          .as(dateConfig[dateRange].unit),
     };
-  }, [filteredActivities, dateRange]);
+  }, [now, rangeStart, dateRange, filteredActivities]);
+
+  const options = useMemo(
+    () =>
+      ({
+        maintainAspectRatio: false,
+        plugins: {
+          tooltip: {
+            callbacks: {
+              title: (context) => {
+                let formatStr: string;
+                if (
+                  dateConfig[dateRange].unit === 'day' ||
+                  dateConfig[dateRange].unit === 'week'
+                ) {
+                  formatStr = 'DDD';
+                } else if (dateConfig[dateRange].unit === 'month') {
+                  formatStr = 'LLL yyyy';
+                } else {
+                  formatStr = 'yyyy';
+                }
+
+                return (context[0].raw as { x: DateTime }).x.toFormat(
+                  formatStr
+                );
+              },
+              label: (context) => {
+                if (context.datasetIndex === 0) {
+                  return `${context.formattedValue} mi`;
+                } else {
+                  return `${context.formattedValue} min/mi`;
+                }
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            suggestedMin: rangeStart.toMillis(),
+            max: now.toMillis(),
+            grid: { display: false },
+            type: 'timeseries',
+            ticks: {
+              autoSkip: false,
+              stepSize: 3,
+            },
+            time: {
+              unit: dateConfig[dateRange].unit,
+            },
+          },
+        },
+      } as ChartOptions<'line'>),
+    [dateRange, rangeStart, now]
+  );
 
   return (
     <Flex direction={'column'} height={'100%'}>
       <Tabs
         align={'end'}
+        defaultIndex={1}
         onChange={(i) =>
           setDateRange(
             (['sevenDays', 'fourWeeks', 'sixMonths', 'oneYear'] as const)[i]
@@ -150,31 +206,70 @@ const Running: FC<RunningProps> = ({ activities }) => {
         </TabList>
       </Tabs>
       <Flex flexGrow={1} p={4} flexDir={'column'}>
-        <Box className={styles.flexItem}>
-          <StatGroup>
-            <Stat>
-              <StatLabel>Total Distance</StatLabel>
-              <StatNumber>{totalDistance.toFixed(2)} mi</StatNumber>
-            </Stat>
-            <Stat>
-              <StatLabel>
+        <Flex>
+          <Center className={styles.statDial}>
+            <Box>
+              <Center>
+                <CircularProgress size={'150px'} thickness={3} value={100}>
+                  <CircularProgressLabel fontSize={'3xl'}>
+                    {totalDistance.toFixed(2)}
+                  </CircularProgressLabel>
+                </CircularProgress>
+              </Center>
+              <Center fontWeight={'bold'}>Total Distance</Center>
+            </Box>
+          </Center>
+          <Center className={styles.statDial}>
+            <Box>
+              <Center>
+                <CircularProgress
+                  size={'150px'}
+                  thickness={3}
+                  value={100}
+                  color={'green.400'}
+                >
+                  <CircularProgressLabel fontSize={'3xl'}>
+                    {averageDistance.toFixed(2)}
+                  </CircularProgressLabel>
+                </CircularProgress>
+              </Center>
+              <Center fontWeight={'bold'}>
                 Average Distance per {dateConfig[dateRange].unit}
-              </StatLabel>
-              <StatNumber>{averageDistance.toFixed(2)} mi</StatNumber>
-            </Stat>
-          </StatGroup>
-          <Box flexGrow={1}>
+              </Center>
+            </Box>
+          </Center>
+          <Center className={styles.statDial}>
+            <Box>
+              <Center>
+                <CircularProgress
+                  size={'150px'}
+                  thickness={3}
+                  value={100}
+                  color={'red.400'}
+                >
+                  <CircularProgressLabel fontSize={'3xl'}>
+                    {averagePace.toFormat('m:ss')}
+                  </CircularProgressLabel>
+                </CircularProgress>
+              </Center>
+              <Center fontWeight={'bold'}>Average Pace</Center>
+            </Box>
+          </Center>
+        </Flex>
+        <Flex flexGrow={1} flexDir={{ lg: 'column', xl: 'row' }}>
+          <Box flexGrow={1} flexBasis={0}>
             <Line
               options={{
-                maintainAspectRatio: false,
-                scales: {
-                  x: {
-                    suggestedMin: rangeStart.toMillis(),
-                    max: now.toMillis(),
-                    grid: { display: false },
-                    type: 'timeseries',
-                    time: {
-                      unit: dateConfig[dateRange].unit,
+                ...options,
+                plugins: {
+                  ...options.plugins,
+                  tooltip: {
+                    ...options.plugins?.tooltip,
+                    callbacks: {
+                      ...options.plugins?.tooltip?.callbacks,
+                      label: (context) => {
+                        return `${context.formattedValue} mi`;
+                      },
                     },
                   },
                 },
@@ -189,17 +284,27 @@ const Running: FC<RunningProps> = ({ activities }) => {
               }}
             ></Line>
           </Box>
-        </Box>
-        <Box className={styles.flexItem}>
-          <Stat>
-            <StatLabel>Average Pace</StatLabel>
-            <StatNumber>{averagePace.toFormat('m:ss')} min/mi</StatNumber>
-          </Stat>
-          <Box flexGrow={1}>
+          <Box flexGrow={1} flexBasis={0}>
             <Line
               options={{
-                maintainAspectRatio: false,
+                ...options,
+                plugins: {
+                  ...options.plugins,
+                  tooltip: {
+                    ...options.plugins?.tooltip,
+                    callbacks: {
+                      ...options.plugins?.tooltip?.callbacks,
+                      label: (context) => {
+                        return (
+                          (context.raw as { y: Duration }).y.toFormat('m:ss') +
+                          ' min/mi'
+                        );
+                      },
+                    },
+                  },
+                },
                 scales: {
+                  ...options.scales,
                   y: {
                     ticks: {
                       callback: (value) => {
@@ -207,15 +312,6 @@ const Running: FC<RunningProps> = ({ activities }) => {
                           ? Duration.fromMillis(value).toFormat('m:ss')
                           : value;
                       },
-                    },
-                  },
-                  x: {
-                    suggestedMin: rangeStart.toMillis(),
-                    max: now.toMillis(),
-                    grid: { display: false },
-                    type: 'timeseries',
-                    time: {
-                      unit: dateConfig[dateRange].unit,
                     },
                   },
                 },
@@ -230,7 +326,7 @@ const Running: FC<RunningProps> = ({ activities }) => {
               }}
             ></Line>
           </Box>
-        </Box>
+        </Flex>
       </Flex>
     </Flex>
   );
