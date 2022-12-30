@@ -149,7 +149,7 @@ const Running: FC<RunningProps> = ({ activities }) => {
           <Tab>1 Year</Tab>
         </TabList>
       </Tabs>
-      <SimpleGrid flexGrow={1} p={4} columns={{ lg: 1, xl: 2 }} spacing={4}>
+      <Flex flexGrow={1} p={4} flexDir={'column'}>
         <Box className={styles.flexItem}>
           <StatGroup>
             <Stat>
@@ -163,70 +163,75 @@ const Running: FC<RunningProps> = ({ activities }) => {
               <StatNumber>{averageDistance.toFixed(2)} mi</StatNumber>
             </Stat>
           </StatGroup>
-          <Line
-            options={{
-              scales: {
-                x: {
-                  suggestedMin: rangeStart.toMillis(),
-
-                  max: now.toMillis(),
-                  grid: { display: false },
-                  type: 'timeseries',
-                  time: {
-                    unit: dateConfig[dateRange].unit,
+          <Box flexGrow={1}>
+            <Line
+              options={{
+                maintainAspectRatio: false,
+                scales: {
+                  x: {
+                    suggestedMin: rangeStart.toMillis(),
+                    max: now.toMillis(),
+                    grid: { display: false },
+                    type: 'timeseries',
+                    time: {
+                      unit: dateConfig[dateRange].unit,
+                    },
                   },
                 },
-              },
-            }}
-            data={{
-              datasets: [
-                {
-                  data: distanceData,
-                  borderColor: 'rgba(0, 0, 255, 0.2)',
-                },
-              ],
-            }}
-          ></Line>
+              }}
+              data={{
+                datasets: [
+                  {
+                    data: distanceData,
+                    borderColor: 'rgba(0, 0, 255, 0.2)',
+                  },
+                ],
+              }}
+            ></Line>
+          </Box>
         </Box>
         <Box className={styles.flexItem}>
           <Stat>
             <StatLabel>Average Pace</StatLabel>
-            <StatNumber>{averagePace.toFormat('mm:ss')} min/mi</StatNumber>
+            <StatNumber>{averagePace.toFormat('m:ss')} min/mi</StatNumber>
           </Stat>
-          <Line
-            options={{
-              scales: {
-                y: {
-                  ticks: {
-                    callback: (value) => {
-                      return typeof value === 'number'
-                        ? Duration.fromMillis(value).toFormat('m:ss')
-                        : value;
+          <Box flexGrow={1}>
+            <Line
+              options={{
+                maintainAspectRatio: false,
+                scales: {
+                  y: {
+                    ticks: {
+                      callback: (value) => {
+                        return typeof value === 'number'
+                          ? Duration.fromMillis(value).toFormat('m:ss')
+                          : value;
+                      },
+                    },
+                  },
+                  x: {
+                    suggestedMin: rangeStart.toMillis(),
+                    max: now.toMillis(),
+                    grid: { display: false },
+                    type: 'timeseries',
+                    time: {
+                      unit: dateConfig[dateRange].unit,
                     },
                   },
                 },
-                x: {
-                  suggestedMin: rangeStart.toMillis(),
-                  max: now.toMillis(),
-                  grid: { display: false },
-                  type: 'timeseries',
-                  time: {
-                    unit: dateConfig[dateRange].unit,
+              }}
+              data={{
+                datasets: [
+                  {
+                    data: paceData,
+                    borderColor: 'rgba(255, 0, 0, 0.2)',
                   },
-                },
-              },
-            }}
-            data={{
-              datasets: [
-                {
-                  data: paceData,
-                  borderColor: 'rgba(255, 0, 0, 0.2)',
-                },
-              ],
-            }}
-          ></Line>
+                ],
+              }}
+            ></Line>
+          </Box>
         </Box>
-      </SimpleGrid>
+      </Flex>
     </Flex>
   );
 };

@@ -60,7 +60,7 @@ function App() {
   }, []);
 
   return (
-    <div style={{ height: '100vh' }}>
+    <div style={{ height: '100vh', maxHeight: '100vh' }}>
       <ChakraProvider>
         <Tabs
           display={'flex'}
