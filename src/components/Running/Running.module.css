@@ -1,1 +1,7 @@
-.Running {}
+.flexItem {
+    margin-bottom: 20px;
+}
+
+.flexItem:last-of-type {
+    margin-bottom: 0;
+}

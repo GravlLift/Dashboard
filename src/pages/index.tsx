@@ -17,15 +17,12 @@ import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import CurrentConditions from '../components/CurrentConditions/CurrentConditions';
 import ForecastChart from '../components/ForecastChart/ForecastChart';
 import Running from '../components/Running/Running';
-import TotalDistanceChart from '../components/TotalDistanceChart/TotalDistanceChart';
 import { Data } from '../data';
 import styles from './index.module.css';
 
 function App() {
   const [forecasts, setForecasts] = useState<Data['weather'] | undefined>();
-  const [garminData, setGarminData] = useState<Data['garmin'] | undefined>(
-    undefined
-  );
+  const [garminData, setGarminData] = useState<Data['garmin'] | undefined>();
   useEffect(() => {
     let ws: WebSocketSubject<Data | { lat: number; lon: number }>;
     let subscription: Subscription;
@@ -116,7 +113,7 @@ function App() {
           </TabPanels>
           <TabList>
             <Tab>Weather</Tab>
-            <Tab>Activities</Tab>
+            <Tab>Jason Running</Tab>
           </TabList>
         </Tabs>
       </ChakraProvider>

@@ -22,5 +22,5 @@ async function initialize() {
 
 export async function getActivities() {
   await initialize();
-  return await GCClient.getActivities(0, 10);
+  return await GCClient.getActivities(0, 200);
 }
