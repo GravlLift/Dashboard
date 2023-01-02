@@ -1,8 +1,8 @@
 import cloudscraper from 'cloudscraper';
+import { DateTime } from 'luxon';
 
-export async function get18MapleAveZestimateHistory() {
-  const url =
-    'https://www.zillow.com/graphql/?zpid=56385032&timePeriod=TEN_YEARS&metricType=LOCAL_HOME_VALUES&forecast=true&operationName=HomeValueChartDataQuery';
+export async function getZestimateHistory(zpid: string) {
+  const url = `https://www.zillow.com/graphql/?zpid=${zpid}&timePeriod=TEN_YEARS&metricType=LOCAL_HOME_VALUES&forecast=true&operationName=HomeValueChartDataQuery`;
   const response = (await cloudscraper({
     method: 'POST',
     url,
@@ -10,7 +10,7 @@ export async function get18MapleAveZestimateHistory() {
     body: {
       operationName: 'HomeValueChartDataQuery',
       variables: {
-        zpid: 56385032,
+        zpid,
         timePeriod: 'TEN_YEARS',
         metricType: 'LOCAL_HOME_VALUES',
         forecast: true,
@@ -29,5 +29,15 @@ export async function get18MapleAveZestimateHistory() {
     };
   };
 
-  return response.data.property.homeValueChartData[0].points;
+  return [
+    {
+      x: DateTime.fromObject({ year: 2021, month: 3, day: 22 }).toMillis(),
+      y: 600000,
+    },
+    ...response.data.property.homeValueChartData[0].points.filter(
+      (p) =>
+        DateTime.fromMillis(p.x) >=
+        DateTime.fromObject({ year: 2021, month: 3, day: 22 })
+    ),
+  ];
 }

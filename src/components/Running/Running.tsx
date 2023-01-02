@@ -4,18 +4,11 @@ import {
   CircularProgress,
   CircularProgressLabel,
   Flex,
-  SimpleGrid,
   Tab,
   TabList,
   Tabs,
 } from '@chakra-ui/react';
-import {
-  BarElement,
-  Chart,
-  ChartOptions,
-  TimeSeriesScale,
-  Tooltip,
-} from 'chart.js';
+import { Chart, ChartOptions, TimeSeriesScale, Tooltip } from 'chart.js';
 import { DateTime, Duration } from 'luxon';
 import React, { FC, useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
@@ -48,7 +41,7 @@ const dateConfig = {
   },
 };
 
-Chart.register(BarElement, TimeSeriesScale, Tooltip);
+Chart.register(TimeSeriesScale, Tooltip);
 
 const Running: FC<RunningProps> = ({ activities }) => {
   const [dateRange, setDateRange] =
@@ -157,13 +150,6 @@ const Running: FC<RunningProps> = ({ activities }) => {
                 return (context[0].raw as { x: DateTime }).x.toFormat(
                   formatStr
                 );
-              },
-              label: (context) => {
-                if (context.datasetIndex === 0) {
-                  return `${context.formattedValue} mi`;
-                } else {
-                  return `${context.formattedValue} min/mi`;
-                }
               },
             },
           },

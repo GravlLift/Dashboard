@@ -17,12 +17,14 @@ import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import CurrentConditions from '../components/CurrentConditions/CurrentConditions';
 import ForecastChart from '../components/ForecastChart/ForecastChart';
 import Running from '../components/Running/Running';
+import Zillow from '../components/Zillow/Zillow';
 import { Data } from '../data';
 import styles from './index.module.css';
 
 function App() {
   const [forecasts, setForecasts] = useState<Data['weather'] | undefined>();
   const [garminData, setGarminData] = useState<Data['garmin'] | undefined>();
+  const [houseData, setHouseData] = useState<Data['house'] | undefined>();
   useEffect(() => {
     let ws: WebSocketSubject<Data | { lat: number; lon: number }>;
     let subscription: Subscription;
@@ -39,6 +41,9 @@ function App() {
           }
           if ('garmin' in msg) {
             setGarminData(msg.garmin);
+          }
+          if ('house' in msg) {
+            setHouseData(msg.house);
           }
         },
         error: () => {
@@ -110,10 +115,29 @@ function App() {
                 </Card>
               </Flex>
             </TabPanel>
+            <TabPanel>
+              <Flex height={'100%'}>
+                <Card className={styles.card}>
+                  {houseData ? (
+                    <Zillow
+                      data={houseData?.zestimateHistory.map((d) => ({
+                        x: DateTime.fromMillis(d.x),
+                        y: d.y,
+                      }))}
+                    ></Zillow>
+                  ) : (
+                    <Center flexGrow={1}>
+                      <Spinner size={'xl'} />
+                    </Center>
+                  )}{' '}
+                </Card>
+              </Flex>
+            </TabPanel>
           </TabPanels>
           <TabList>
             <Tab>Weather</Tab>
             <Tab>Jason Running</Tab>
+            <Tab>Home</Tab>
           </TabList>
         </Tabs>
       </ChakraProvider>
